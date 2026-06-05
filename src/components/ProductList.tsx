@@ -2,33 +2,54 @@
  * ProductList - Lists all products with search and filtering
  */
 
-import { useState, useMemo } from 'react';
-import { useProductsContext } from '@/context';
+import { useState, useMemo } from "react";
+import { useProductsContext } from "@/context";
 
 export default function ProductList() {
   const { products, currentProductId, selectProduct } = useProductsContext();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  // Normalize ID safely
+  const getId = (id: unknown): string => {
+    return typeof id === "string" && id.trim() !== "" ? id : "";
+  };
+
+  // Normalize name safely
+  const getName = (product: any): string => {
+    if (typeof product.name === "string" && product.name.trim()) return product.name;
+    if (typeof product.title === "string" && product.title.trim()) return product.title;
+    return "(Unnamed)";
+  };
+
+  // Normalize category safely
+  const getCategory = (product: any): string => {
+    if (typeof product.category === "string" && product.category.trim()) return product.category;
+    if (typeof product.type === "string" && product.type.trim()) return product.type;
+    return "Uncategorized";
+  };
 
   // Get unique categories
   const categories = useMemo(() => {
     const cats = new Set<string>();
+
     for (const product of products) {
-      const category = product.category || product.type || 'Uncategorized';
-      if (typeof category === 'string') {
-        cats.add(category);
-      }
+      cats.add(getCategory(product));
     }
+
     return Array.from(cats).sort();
   }, [products]);
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      const id = getId(product.id);
+      const name = getName(product).toLowerCase();
+      const category = getCategory(product).toLowerCase();
+
       // Category filter
-      if (categoryFilter !== 'all') {
-        const productCategory = (product.category || product.type || 'Uncategorized') as string;
-        if (productCategory !== categoryFilter) {
+      if (categoryFilter !== "all") {
+        if (category !== categoryFilter.toLowerCase()) {
           return false;
         }
       }
@@ -36,11 +57,12 @@ export default function ProductList() {
       // Search filter
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const id = String(product.id || '').toLowerCase();
-        const name = String(product.name || product.title || '').toLowerCase();
-        const category = String(product.category || product.type || '').toLowerCase();
 
-        return id.includes(query) || name.includes(query) || category.includes(query);
+        return (
+          id.toLowerCase().includes(query) ||
+          name.includes(query) ||
+          category.includes(query)
+        );
       }
 
       return true;
@@ -81,38 +103,50 @@ export default function ProductList() {
         {filteredProducts.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <p className="text-sm">
-              {products.length === 0 ? 'No products loaded' : 'No products match your search'}
+              {products.length === 0
+                ? "No products loaded"
+                : "No products match your search"}
             </p>
             <p className="text-xs mt-2">
-              {products.length === 0 ? 'Import a products.json file to get started' : ''}
+              {products.length === 0
+                ? "Import a products.json file to get started"
+                : ""}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {filteredProducts.map((product) => (
-              <button
-                key={product.id}
-                onClick={() => selectProduct(product.id as string)}
-                className={`w-full text-left p-3 border-l-4 transition ${
-                  product.id === currentProductId
-                    ? 'bg-blue-50 border-l-blue-600'
-                    : 'border-l-transparent hover:bg-gray-50'
-                }`}
-              >
-                <p className="font-medium text-sm truncate">
-                  {(product.name || product.title || '(Unnamed)') as string}
-                </p>
-                <p className="text-xs text-gray-500 truncate">ID: {product.id || 'N/A'}</p>
-                {product.category && (
-                  <p className="text-xs text-gray-400">
-                    {String(product.category)}
+            {filteredProducts.map((product, index) => {
+              const id = getId(product.id);
+              const name = getName(product);
+              const category = getCategory(product);
+
+              return (
+                <button
+                  key={id || index}
+                  onClick={() => {
+                    if (id) selectProduct(id);
+                  }}
+                  className={`w-full text-left p-3 border-l-4 transition ${
+                    id === currentProductId
+                      ? "bg-blue-50 border-l-blue-600"
+                      : "border-l-transparent hover:bg-gray-50"
+                  }`}
+                >
+                  <p className="font-medium text-sm truncate">{name}</p>
+
+                  <p className="text-xs text-gray-500 truncate">
+                    ID: {id || "N/A"}
                   </p>
-                )}
-              </button>
-            ))}
+
+                  {category && (
+                    <p className="text-xs text-gray-400">{category}</p>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }
