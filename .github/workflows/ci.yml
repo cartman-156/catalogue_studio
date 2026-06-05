@@ -44,7 +44,7 @@ jobs:
           path: 'dist'
 
   deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: github.ref == 'origin/heads/main' || github.ref == 'refs/heads/first_commit' || github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
     environment:
