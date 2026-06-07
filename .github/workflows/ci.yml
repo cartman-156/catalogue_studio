@@ -12,10 +12,6 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,31 +28,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Type check
-        #run: npm run type-check
+      - name: Type check
+        run: npm run type-check
 
       - name: Build project
         run: npm run build
 
-      - name: Add 404 fallback for SPA
-        run: |
-          if [ -f dist/index.html ]; then
-            cp dist/index.html dist/404.html
-          fi
-
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist'
+          path: ./dist
 
-  deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/first_commit' || github.ref == 'refs/heads/master'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4

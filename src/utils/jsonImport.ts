@@ -6,18 +6,36 @@ import { ProductCollection } from '@/types';
 
 /**
  * Parse JSON file content
- * TODO: Add comprehensive error handling and validation
+ * Supports both direct array format [{}] and object format { "products": [{}] }
  */
 export const parseJsonFile = (content: string): ProductCollection => {
   try {
     const data = JSON.parse(content);
 
-    // Validate basic structure
-    if (!data.products || !Array.isArray(data.products)) {
-      throw new Error('Invalid format: missing "products" array');
+    let products;
+
+    // Handle direct array format: [{ id, title, ... }]
+    if (Array.isArray(data)) {
+      products = data;
+    }
+    // Handle object format: { "products": [{ id, title, ... }] }
+    else if (data.products && Array.isArray(data.products)) {
+      products = data.products;
+    }
+    // Invalid format
+    else {
+      throw new Error('Invalid format: expected either a direct array or an object with "products" array');
     }
 
-    return data as ProductCollection;
+    // Return as ProductCollection with metadata
+    return {
+      products,
+      metadata: {
+        version: '1.0',
+        lastUpdated: new Date().toISOString(),
+        itemCount: products.length,
+      },
+    } as ProductCollection;
   } catch (error) {
     throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`);
   }
