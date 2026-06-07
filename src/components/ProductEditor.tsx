@@ -18,6 +18,7 @@ export default function ProductEditor() {
   } = useProductsContext();
 
   const currentProduct = products.find((p) => p.id === currentProductId);
+
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [idInput, setIdInput] = useState('');
 
@@ -31,7 +32,8 @@ export default function ProductEditor() {
     if (unsavedChanges) {
       const timer = setTimeout(() => {
         setUnsavedChanges(false);
-      }, 2002);
+      }, 2000);
+
       return () => clearTimeout(timer);
     }
   }, [unsavedChanges]);
@@ -40,44 +42,57 @@ export default function ProductEditor() {
     return (
       <div className="flex flex-col h-full">
         <div className="bg-white border-b border-gray-200 p-6">
-          <h2 className="text-2xl font-bold text-gray-900">Select a Product to Edit</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Select a Product to Edit
+          </h2>
         </div>
+
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-gray-500">
             <p className="text-lg">No product selected</p>
-            <p className="text-sm mt-2">Select a product from the list to edit</p>
+            <p className="text-sm mt-2">
+              Select a product from the list to edit
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  const productName = (currentProduct?.name || currentProduct?.title || '(Unnamed)') as string;
-  const [idInput, setIdInput] = useState('');
+  const productName = (
+    currentProduct.name ||
+    currentProduct.title ||
+    '(Unnamed)'
+  ) as string;
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
     updateProduct(currentProduct.id as string, {
       [fieldName]: value,
     });
+
     setUnsavedChanges(true);
   };
 
   const handleIdChange = (value: string) => {
     const trimmed = value.trim();
+
     if (!trimmed) return;
+
     if (trimmed === currentProduct.id) {
       setIdInput(value);
       return;
     }
+
     updateProduct(currentProduct.id as string, {
       id: trimmed,
     });
+
     setIdInput(trimmed);
     setUnsavedChanges(true);
   };
 
   const handleDelete = () => {
-    if (confirm(`Delete "${productName}"? This cannot be undone.`)) {
+    if (window.confirm(`Delete "${productName}"? This cannot be undone.`)) {
       deleteProduct(currentProduct.id as string);
     }
   };
@@ -86,8 +101,10 @@ export default function ProductEditor() {
     duplicateProduct(currentProduct.id as string);
   };
 
-  // Get field entries
-  const fields = Object.entries(currentProduct).filter(([key]) => key !== 'id');
+  // Get field entries excluding the ID field
+  const fields = Object.entries(currentProduct).filter(
+    ([key]) => key !== 'id'
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -95,10 +112,16 @@ export default function ProductEditor() {
       <div className="bg-white border-b border-gray-200 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">{productName}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {productName}
+            </h2>
+
             <div className="mt-3 space-y-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Product ID</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Product ID
+                </label>
+
                 <input
                   type="text"
                   value={idInput}
@@ -107,9 +130,13 @@ export default function ProductEditor() {
                   className="input-field mt-1 w-full"
                 />
               </div>
-              <p className="text-sm text-gray-500">Current ID: {currentProduct.id}</p>
+
+              <p className="text-sm text-gray-500">
+                Current ID: {currentProduct.id}
+              </p>
             </div>
           </div>
+
           {unsavedChanges && (
             <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
               Unsaved changes
@@ -132,7 +159,9 @@ export default function ProductEditor() {
                   fieldName={fieldName}
                   fieldType={inferFieldType(value)}
                   value={value}
-                  onChange={(newValue) => handleFieldChange(fieldName, newValue)}
+                  onChange={(newValue) =>
+                    handleFieldChange(fieldName, newValue)
+                  }
                 />
               </div>
             ))
@@ -143,12 +172,15 @@ export default function ProductEditor() {
       {/* Footer with actions */}
       <div className="bg-white border-t border-gray-200 p-4 flex gap-2 justify-end">
         <button
+          type="button"
           onClick={handleDuplicate}
           className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition font-medium text-sm"
         >
           📋 Duplicate
         </button>
+
         <button
+          type="button"
           onClick={handleDelete}
           className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition font-medium text-sm"
         >
