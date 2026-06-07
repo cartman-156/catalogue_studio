@@ -5,7 +5,11 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/Catalog_Studio/',
+  // Use relative base so assets resolve correctly on GitHub Pages regardless
+  // of repository name casing or custom domain. Relative paths avoid
+  // absolute-path mismatches that can cause MIME type errors when assets
+  // return a 404 and the server responds with HTML.
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

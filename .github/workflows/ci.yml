@@ -38,6 +38,12 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Add 404 fallback for SPA
+        run: |
+          if [ -f dist/index.html ]; then
+            cp dist/index.html dist/404.html
+          fi
+
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
