@@ -2,17 +2,53 @@
  * AddProductModal - Modal for creating new products
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useProductsContext } from '@/context';
+import { Product } from '@/types';
+import { generateId } from '@/utils';
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const getEmptyValue = (value: unknown) => {
+  if (Array.isArray(value)) return [];
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'boolean') return false;
+  if (typeof value === 'number') return 0;
+  if (typeof value === 'object') return {};
+  return '';
+};
+
+const cloneStructure = (product: Product, name: string, id: string): Product => {
+  const newProduct: Record<string, unknown> = { id, name };
+
+  Object.entries(product).forEach(([key, value]) => {
+    if (key === 'id') return;
+    if (key === 'name') {
+      newProduct.name = name;
+      return;
+    }
+    if (key === 'title') {
+      newProduct.title = '';
+      return;
+    }
+    newProduct[key] = getEmptyValue(value);
+  });
+
+  return newProduct as Product;
+};
+
 export default function AddProductModal({ isOpen, onClose }: AddProductModalProps) {
-  const { addProduct } = useProductsContext();
+  const { addProduct, products, currentProductId } = useProductsContext();
   const [productName, setProductName] = useState('New Product');
+  const [productId, setProductId] = useState(() => generateId());
+
+  const selectedProduct = useMemo(() => {
+    const current = products.find((product) => product.id === currentProductId);
+    return current || products[0];
+  }, [products, currentProductId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,11 +57,13 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
       return;
     }
 
-    addProduct({
-      name: productName,
-    });
+    const newProduct = selectedProduct
+      ? cloneStructure(selectedProduct, productName.trim(), productId.trim() || generateId())
+      : { id: productId.trim() || generateId(), name: productName.trim() };
 
+    addProduct(newProduct);
     setProductName('New Product');
+    setProductId(generateId());
     onClose();
   };
 

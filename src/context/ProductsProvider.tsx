@@ -111,10 +111,16 @@ export const ProductsProvider = ({ children }: ProductsProviderProps) => {
 
   const updateProduct = useCallback(
     (id: string, updates: Partial<Product>) => {
-      const updated = products.map((p) =>
-        p.id === id ? { ...p, ...updates } : p
-      );
-      pushToHistory(updated, id);
+      let newCurrentId = id;
+      const updated = products.map((p) => {
+        if (p.id !== id) return p;
+        const updatedProduct = { ...p, ...updates };
+        if (updates.id && updates.id !== id) {
+          newCurrentId = updates.id as string;
+        }
+        return updatedProduct;
+      });
+      pushToHistory(updated, newCurrentId);
     },
     [products, pushToHistory]
   );

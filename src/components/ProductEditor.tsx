@@ -19,13 +19,19 @@ export default function ProductEditor() {
 
   const currentProduct = products.find((p) => p.id === currentProductId);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [idInput, setIdInput] = useState('');
+
+  // Keep ID input synced when the selected product changes
+  useEffect(() => {
+    setIdInput(currentProduct?.id || '');
+  }, [currentProduct?.id]);
 
   // Auto-clear unsaved changes indicator after a delay
   useEffect(() => {
     if (unsavedChanges) {
       const timer = setTimeout(() => {
         setUnsavedChanges(false);
-      }, 2000);
+      }, 2002);
       return () => clearTimeout(timer);
     }
   }, [unsavedChanges]);
@@ -46,12 +52,27 @@ export default function ProductEditor() {
     );
   }
 
-  const productName = (currentProduct.name || currentProduct.title || '(Unnamed)') as string;
+  const productName = (currentProduct?.name || currentProduct?.title || '(Unnamed)') as string;
+  const [idInput, setIdInput] = useState('');
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
     updateProduct(currentProduct.id as string, {
       [fieldName]: value,
     });
+    setUnsavedChanges(true);
+  };
+
+  const handleIdChange = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (trimmed === currentProduct.id) {
+      setIdInput(value);
+      return;
+    }
+    updateProduct(currentProduct.id as string, {
+      id: trimmed,
+    });
+    setIdInput(trimmed);
     setUnsavedChanges(true);
   };
 
@@ -72,10 +93,22 @@ export default function ProductEditor() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-6">
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-900">{productName}</h2>
-            <p className="text-sm text-gray-500 mt-1">ID: {currentProduct.id}</p>
+            <div className="mt-3 space-y-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Product ID</label>
+                <input
+                  type="text"
+                  value={idInput}
+                  onChange={(e) => setIdInput(e.target.value)}
+                  onBlur={(e) => handleIdChange(e.target.value)}
+                  className="input-field mt-1 w-full"
+                />
+              </div>
+              <p className="text-sm text-gray-500">Current ID: {currentProduct.id}</p>
+            </div>
           </div>
           {unsavedChanges && (
             <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
